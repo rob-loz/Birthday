@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🐱🍕🎂</title>
   
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  
   <style>
     :root {
       --primary: #ff6b81;
@@ -96,41 +94,81 @@
       transform: scale(0.95);
     }
 
-    /* --- MAP SECTION --- */
+    /* --- STATIC MAP SECTION --- */
     .map-section {
       width: 92%;
       max-width: 800px;
       margin: 10px auto 30px auto;
-      display: flex; /* Visible by default */
+      display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    #map {
+    #staticMap {
       width: 100%;
       height: 450px;
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       border: 4px solid white;
-    }
-    
-    /* Cartoony Map Filter */
-    .cartoony-tiles {
-      filter: saturate(180%) brightness(105%) hue-rotate(-5deg) contrast(1.15) !important;
+      position: relative;
+      overflow: hidden;
+      /* Cute cartoony land and water background */
+      background-color: #a0e6ff; /* Water */
+      background-image: 
+        radial-gradient(ellipse at 10% 50%, #b8e994 0%, #b8e994 55%, transparent 55.5%),
+        radial-gradient(ellipse at 50% 100%, #b8e994 0%, #b8e994 45%, transparent 45.5%),
+        radial-gradient(ellipse at 60% -10%, #b8e994 0%, #b8e994 35%, transparent 35.5%),
+        radial-gradient(ellipse at 90% 70%, #b8e994 0%, #b8e994 30%, transparent 30.5%);
     }
 
-    /* Custom Cat Map Icon */
-    .cat-map-marker-svg {
-      width: 45px !important;
-      height: 45px !important;
-      filter: drop-shadow(0px 5px 4px rgba(0,0,0,0.3));
-      margin-left: -22px !important;
-      margin-top: -22px !important;
-      transition: transform 0.3s ease;
+    .static-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 100;
+      transition: transform 0.2s;
     }
-    
-    .cat-map-marker-svg:hover {
-      transform: scale(1.15) translateY(-5px);
+
+    .static-marker:hover {
+      transform: translate(-50%, -50%) scale(1.1);
+      z-index: 150;
+    }
+
+    .marker-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 3px 3px rgba(0,0,0,0.3));
+    }
+
+    .marker-label {
+      background: white;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--secondary);
+      white-space: nowrap;
+      margin-top: 2px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      pointer-events: none;
+    }
+
+    #catMapMarker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      z-index: 500;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      pointer-events: none; /* Let clicks pass through */
+    }
+
+    .cat-map-marker-svg {
+      width: 45px;
+      height: 45px;
+      filter: drop-shadow(0px 5px 4px rgba(0,0,0,0.4));
     }
 
     /* Restaurant Summary Modal/Card */
@@ -220,7 +258,7 @@
       background: white;
       padding: 12px;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-      display: none; /* Appears after interaction */
+      display: none;
       justify-content: center;
       align-items: center;
       gap: 10px;
@@ -274,19 +312,15 @@
         
         <!-- Tail -->
         <path class="tail" d="M 130 140 Q 180 130 170 80 Q 160 60 150 75 Q 160 100 130 120" fill="#2d3436" />
-        
         <!-- Chonky Body -->
         <ellipse cx="100" cy="145" rx="60" ry="50" fill="#2d3436" />
         <!-- White Belly -->
         <ellipse cx="100" cy="155" rx="35" ry="30" fill="#ffffff" />
-
         <!-- Paws -->
         <ellipse cx="70" cy="190" rx="15" ry="12" fill="#ffffff" />
         <ellipse cx="130" cy="190" rx="15" ry="12" fill="#ffffff" />
-        
         <!-- Big Round Head -->
         <ellipse cx="100" cy="85" rx="55" ry="45" fill="#2d3436" />
-
         <!-- Rounder Ears -->
         <g class="ear" style="transform-origin: 65px 40px;">
           <path d="M 55 60 Q 45 10 75 40 Z" fill="#2d3436" />
@@ -296,14 +330,11 @@
           <path d="M 145 60 Q 155 10 125 40 Z" fill="#2d3436" />
           <path d="M 140 55 Q 150 20 130 42 Z" fill="#ffb8b8" />
         </g>
-
         <!-- Cute White Face Mask -->
         <path d="M 100 115 Q 140 115 145 85 Q 150 70 125 70 Q 100 90 100 90 Q 100 90 75 70 Q 50 70 55 85 Q 60 115 100 115 Z" fill="#ffffff" />
-
         <!-- Pink Blush -->
         <ellipse cx="65" cy="95" rx="8" ry="5" fill="#ffb8b8" opacity="0.8" />
         <ellipse cx="135" cy="95" rx="8" ry="5" fill="#ffb8b8" opacity="0.8" />
-
         <!-- Huge Anime Eyes -->
         <ellipse cx="75" cy="75" rx="12" ry="16" fill="#000000" />
         <ellipse cx="125" cy="75" rx="12" ry="16" fill="#000000" />
@@ -312,19 +343,19 @@
         <circle cx="78" cy="82" r="2.5" fill="#ffffff" />
         <ellipse cx="121" cy="69" rx="4" ry="6" fill="#ffffff" />
         <circle cx="128" cy="82" r="2.5" fill="#ffffff" />
-
         <!-- Tiny Nose -->
         <path d="M 96 90 Q 100 93 104 90 Q 100 87 96 90 Z" fill="#ff758f" />
-        
         <!-- :3 Mouth -->
         <path d="M 96 93 Q 100 98 100 95 Q 100 98 104 93" stroke="#2d3436" stroke-width="2.5" stroke-linecap="round" fill="none" />
       </svg>
     </div>
   </main>
 
-  <!-- MAP SECTION (Now visible by default) -->
-  <section class="map-section" id="mapSection">
-    <div id="map"></div>
+  <!-- STATIC MAP SECTION -->
+  <section class="map-section">
+    <div id="staticMap">
+      <!-- Markers and Cat will be injected here by JS -->
+    </div>
   </section>
 
   <!-- RESTAURANT SUMMARY MODAL -->
@@ -349,27 +380,23 @@
     </div>
   </div>
 
-  <!-- Leaflet JS for Map -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
   <script>
     // --- DATA & STATE ---
     const baseSentence = "Happy Birthday Lulu! I am the birthday cat and I am here to show you the way to birthday noms".split(" ");
     
-    let currentLang = 'meowish'; // Default initial language as requested
+    let currentLang = 'meowish';
     let isTalking = false;
     let wordIndex = 0;
     let talkInterval = null;
     let displayedWords = [];
-    let activeRestaurant = null;
 
-    // Restaurant Data
+    // Restaurant Data with relative X/Y percentages instead of Lat/Lng
     const restaurants = [
       {
         id: 1,
         name: "PIQU",
         tag: "Vibrant Thai-Inspired Dining",
-        coords: [-33.8966, 151.1798], 
+        pos: { x: 35, y: 60 }, // Newtown
         address: "194 King St, Newtown",
         desc: "An intimate 35-seat spot bringing bold, punchy Thai techniques and vibrant flavors like buttermilk roti and green mango salad.",
         url: "https://www.google.com/search?q=PIQU+Newtown+Sydney"
@@ -378,7 +405,7 @@
         id: 2,
         name: "Sugo",
         tag: "Generous Comfort Pasta Bar",
-        coords: [-33.9422, 151.1215], 
+        pos: { x: 20, y: 85 }, // Bexley North
         address: "Shop 3, 8/20 Sarsfield Cct, Bexley North",
         desc: "An effortlessly cool retro pasta bar serving handcrafted conchiglie, hearty cotoletta, and affordable Italian classics.",
         url: "https://www.google.com/search?q=Sugo+Bexley+North+Sydney"
@@ -387,16 +414,16 @@
         id: 3,
         name: "Duan Noodle House",
         tag: "Hand-Pulled Noodle Theater",
-        coords: [-33.9118, 151.1554], 
+        pos: { x: 28, y: 72 }, // Marrickville
         address: "Shop 2/359 Illawarra Rd, Marrickville",
         desc: "Watch fresh noodles hand-stretched before your eyes in rich, deeply comforting broths.",
         url: "https://www.google.com/search?q=Duan+Noodle+House+Marrickville"
       },
       {
         id: 4,
-        name: "PST Australia (Pizza Studio Tamaki)",
+        name: "PST Australia",
         tag: "Cult Tokyo Neapolitan Pizza",
-        coords: [-33.8643, 151.2069], 
+        pos: { x: 55, y: 35 }, // Sydney CBD
         address: "259 George St, Sydney CBD",
         desc: "Direct from Tokyo, founder Tsubasa Tamaki serves exceptional woodfired pizza made with 30-hour fermented dough.",
         url: "https://www.google.com/search?q=Pizza+Studio+Tamaki+Sydney"
@@ -405,23 +432,19 @@
         id: 5,
         name: "Lo Presti's Restaurant",
         tag: "Italian & Moroccan Fusion",
-        coords: [-33.8932, 151.2052], 
+        pos: { x: 50, y: 55 }, // Redfern
         address: "Level 1/34b Redfern St, Redfern",
         desc: "Created by Baba's Place alumni, offering rich Mediterranean plates balancing Moroccan spices with Italian flair.",
         url: "https://www.google.com/search?q=Lo+Prestis+Restaurant+Redfern"
       }
     ];
 
-    const BRONTE_COORDS = [-33.9032, 151.2685];
+    const BRONTE_POS = { x: 85, y: 65 };
+    let currentCatPos = { ...BRONTE_POS };
+    let catMarkerEl = null;
 
-    let map = null;
-    let catMarker = null;
-    let currentCatCoords = [...BRONTE_COORDS];
-    let restaurantMarkers = [];
-
-    // Miniature version of the cute SVG for the map marker
     const miniCatSVG = `
-      <svg viewBox="0 0 200 200" width="100%" height="100%" overflow="visible">
+      <svg class="cat-map-marker-svg" viewBox="0 0 200 200" width="100%" height="100%" overflow="visible">
         <ellipse cx="100" cy="145" rx="60" ry="50" fill="#2d3436" />
         <ellipse cx="100" cy="155" rx="35" ry="30" fill="#ffffff" />
         <ellipse cx="100" cy="85" rx="55" ry="45" fill="#2d3436" />
@@ -445,20 +468,17 @@
       if (lang === 'english') return str;
       
       return str.split(/(\s+)/).map(word => {
-        if (!word.trim()) return word; // Preserve whitespace
+        if (!word.trim()) return word; 
         
-        // Extract leading/trailing punctuation and emojis
         const match = word.match(/^([^a-zA-Z0-9]*)(.*?)([^a-zA-Z0-9]*)$/);
         if (!match) return word;
         
         let [ , prefix, core, suffix ] = match;
-        
-        if (!core) return word; // Only punctuation/emojis
+        if (!core) return word; 
         
         if (lang === 'prawnese') {
           return prefix + '🦐' + suffix;
         } else {
-          // Meowish
           let isCapitalized = /^[A-Z]/.test(core);
           return prefix + (isCapitalized ? 'Meow' : 'meow') + suffix;
         }
@@ -466,12 +486,10 @@
     }
 
     function updateAllDOMText() {
-      // Update elements with data-en attribute
       document.querySelectorAll('[data-en]').forEach(el => {
         const originalText = el.getAttribute('data-en');
         if (originalText) {
           if(el.tagName === 'P' && originalText.startsWith('Address:')) {
-             // Handle address bolding specifically
              const addrCore = originalText.replace('Address: ', '');
              el.innerHTML = `<strong>${translateText('Address:', currentLang)}</strong> ${translateText(addrCore, currentLang)}`;
           } else {
@@ -480,20 +498,6 @@
         }
       });
 
-      // Update Map Tooltips
-      if (restaurantMarkers.length > 0) {
-        restaurantMarkers.forEach(item => {
-          item.marker.unbindTooltip();
-          item.marker.bindTooltip(`📍 ` + translateText(item.res.name, currentLang), { permanent: true, direction: 'bottom', offset: [0, 8] });
-        });
-      }
-
-      if (catMarker) {
-        catMarker.unbindTooltip();
-        catMarker.bindTooltip(translateText("Lulu's Birthday Cat (Starting at Bronte)", currentLang), { permanent: false, direction: 'top' });
-      }
-
-      // Re-render currently spoken text
       if (displayedWords.length > 0) {
         renderSpeechBubble();
       }
@@ -512,7 +516,6 @@
       displayedWords = [];
       document.getElementById('speechText').innerText = '';
 
-      // Set default lang UI on first run
       updateAllDOMText();
 
       talkInterval = setInterval(() => {
@@ -546,62 +549,73 @@
           btn.classList.add('active');
         }
       });
-
       updateAllDOMText();
     }
 
-    // --- MAP & CAT ANIMATION LOGIC ---
-    function initMap() {
-      map = L.map('map').setView([-33.89, 151.20], 12);
+    // --- STATIC MAP & CAT ANIMATION LOGIC ---
+    function initStaticMap() {
+      const mapEl = document.getElementById('staticMap');
 
-      // CartoDB Voyager with CSS filter for cartoony look
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-        className: 'cartoony-tiles',
-        attribution: '© OpenStreetMap'
-      }).addTo(map);
-
-      // Custom SVG Cat Icon
-      const catIcon = L.divIcon({
-        className: 'cat-map-marker-svg',
-        html: miniCatSVG,
-        iconSize: [45, 45],
-        iconAnchor: [22, 22]
-      });
-
-      catMarker = L.marker(BRONTE_COORDS, { icon: catIcon, zIndexOffset: 1000 }).addTo(map);
-      
+      // Add Restaurants
       restaurants.forEach(res => {
-        const marker = L.marker(res.coords).addTo(map);
-        restaurantMarkers.push({ marker: marker, res: res });
-        marker.on('click', () => onRestaurantClick(res));
+        const marker = document.createElement('div');
+        marker.className = 'static-marker';
+        marker.style.left = res.pos.x + '%';
+        marker.style.top = res.pos.y + '%';
+        
+        const icon = document.createElement('span');
+        icon.className = 'marker-icon';
+        icon.innerText = '📍';
+        
+        const label = document.createElement('span');
+        label.className = 'marker-label';
+        label.setAttribute('data-en', res.name);
+        
+        marker.appendChild(icon);
+        marker.appendChild(label);
+        
+        marker.onclick = () => onRestaurantClick(res);
+        mapEl.appendChild(marker);
       });
+
+      // Add Cat
+      catMarkerEl = document.createElement('div');
+      catMarkerEl.id = 'catMapMarker';
+      catMarkerEl.style.left = BRONTE_POS.x + '%';
+      catMarkerEl.style.top = BRONTE_POS.y + '%';
+      catMarkerEl.innerHTML = miniCatSVG;
       
-      // Initialize tooltips with current language
+      const catLabel = document.createElement('span');
+      catLabel.className = 'marker-label';
+      catLabel.setAttribute('data-en', "Lulu's Birthday Cat");
+      catMarkerEl.appendChild(catLabel);
+
+      mapEl.appendChild(catMarkerEl);
+      
       updateAllDOMText();
     }
 
-    function animateCatTravel(targetCoords, callback) {
-      const startCoords = [...currentCatCoords];
-      const duration = 1500; 
+    function animateCatTravel(targetPos, callback) {
+      const startPos = { ...currentCatPos };
+      const duration = 1200; 
       const startTime = performance.now();
 
       function step(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
         
-        // Easing function for smoother travel
         const easeProgress = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
 
-        const currentLat = startCoords[0] + (targetCoords[0] - startCoords[0]) * easeProgress;
-        const currentLng = startCoords[1] + (targetCoords[1] - startCoords[1]) * easeProgress;
+        const currentX = startPos.x + (targetPos.x - startPos.x) * easeProgress;
+        const currentY = startPos.y + (targetPos.y - startPos.y) * easeProgress;
 
-        catMarker.setLatLng([currentLat, currentLng]);
+        catMarkerEl.style.left = currentX + '%';
+        catMarkerEl.style.top = currentY + '%';
 
         if (progress < 1) {
           requestAnimationFrame(step);
         } else {
-          currentCatCoords = [...targetCoords];
+          currentCatPos = { ...targetPos };
           if (callback) callback();
         }
       }
@@ -610,23 +624,20 @@
     }
 
     function onRestaurantClick(res) {
-      animateCatTravel(res.coords, () => {
+      animateCatTravel(res.pos, () => {
         showSummaryModal(res);
       });
     }
 
     // --- MODAL CONTROLS ---
     function showSummaryModal(res) {
-      activeRestaurant = res;
-      
-      // Update data-en attributes for universal translation
       document.getElementById('resTitle').setAttribute('data-en', res.name);
       document.getElementById('resTag').setAttribute('data-en', res.tag);
       document.getElementById('resDesc').setAttribute('data-en', res.desc);
       document.getElementById('resAddr').setAttribute('data-en', "Address: " + res.address);
       document.getElementById('resLink').href = res.url;
       
-      updateAllDOMText(); // Triggers translation of newly injected texts
+      updateAllDOMText(); 
 
       document.getElementById('backdrop').classList.add('active');
       document.getElementById('summaryCard').classList.add('active');
@@ -635,11 +646,9 @@
     function closeModal() {
       document.getElementById('backdrop').classList.remove('active');
       document.getElementById('summaryCard').classList.remove('active');
-      activeRestaurant = null;
     }
 
-    // Initialize Map on Load
-    window.onload = initMap;
+    window.onload = initStaticMap;
   </script>
 </body>
 </html>
