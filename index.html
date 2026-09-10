@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Happy Birthday Lulu! 🎂🐱</title>
+  
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <style>
+    :root {
+      --primary: #ff6b81;
+      --secondary: #4a69bd;
+      --bg: #fff5f6;
+      --card-bg: #ffffff;
+      --text: #2f3542;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding-bottom: 90px;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      margin-top: 10px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      font-size: 0.95rem;
+      color: #70a1ff;
+      font-weight: 600;
+    }
+
+    /* --- CAT & SPEECH BUBBLE CONTAINER --- */
+    .greeting-stage {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      max-width: 500px;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Speech Bubble */
+    .speech-bubble {
+      position: relative;
+      background: var(--card-bg);
+      border-radius: 20px;
+      padding: 18px 22px;
+      min-height: 80px;
+      width: 90%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+      font-size: 1.15rem;
+      line-height: 1.5;
+      font-weight: 600;
+      text-align: center;
+      border: 3px solid var(--primary);
+      transition: all 0.3s ease;
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -15px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 15px 12px 0;
+      border-style: solid;
+      border-color: var(--primary) transparent;
+      display: block;
+      width: 0;
+    }
+
+    /* SVG Cat Styling & Animation */
+    .cat-wrapper {
+      cursor: pointer;
+      width: 180px;
+      height: 180px;
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    .cat-wrapper:hover {
+      transform: scale(1.05);
+    }
+
+    .cat-wrapper:active {
+      transform: scale(0.95);
+    }
+
+    /* Tail Wagging */
+    @keyframes wagTail {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(18deg); }
+    }
+
+    /* Ear Wiggle */
+    @keyframes earMove {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(-5deg); }
+    }
+
+    .cat-tail {
+      transform-origin: bottom left;
+      animation: wagTail 2.5s infinite ease-in-out;
+    }
+
+    .cat-ear-left {
+      transform-origin: bottom right;
+      animation: earMove 3s infinite ease-in-out;
+    }
+
+    .tap-hint {
+      margin-top: 10px;
+      font-size: 0.85rem;
+      color: #888;
+      background: rgba(255,255,255,0.8);
+      padding: 4px 12px;
+      border-radius: 12px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* --- MAP SECTION --- */
+    .map-section {
+      width: 92%;
+      max-width: 800px;
+      margin: 20px auto;
+      display: none; /* revealed via button */
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .action-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255, 107, 129, 0.4);
+      transition: transform 0.2s, background 0.2s;
+      margin: 15px 0;
+    }
+
+    .action-btn:hover {
+      background-color: #ff4757;
+      transform: translateY(-2deg);
+    }
+
+    #map {
+      width: 100%;
+      height: 420px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+      border: 4px solid white;
+    }
+
+    /* Restaurant Summary Modal/Card */
+    .summary-card {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.9);
+      width: 90%;
+      max-width: 420px;
+      background: white;
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+      z-index: 2000;
+      display: none;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .summary-card.active {
+      display: block;
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .summary-card h2 {
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .summary-card .tag {
+      font-size: 0.85rem;
+      color: var(--secondary);
+      font-weight: bold;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .summary-card p {
+      font-size: 0.95rem;
+      line-height: 1.4;
+      margin-bottom: 15px;
+      color: #57606f;
+    }
+
+    .summary-card a {
+      display: inline-block;
+      background: var(--secondary);
+      color: white;
+      padding: 10px 18px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #a4b0be;
+    }
+
+    /* Overlay backdrop */
+    .backdrop {
+      position: fixed;
+      top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.4);
+      z-index: 1999;
+      display: none;
+    }
+
+    .backdrop.active {
+      display: block;
+    }
+
+    /* --- BOTTOM STICKY TRANSLATE BAR --- */
+    .translate-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      padding: 12px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+      display: none; /* Appears after interaction */
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+    }
+
+    .translate-options {
+      display: none;
+      gap: 8px;
+    }
+
+    .translate-options.show {
+      display: flex;
+    }
+
+    .lang-btn {
+      background: #f1f2f6;
+      border: 2px solid #dfe4ea;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .lang-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Custom Cat Map Icon */
+    .cat-map-marker {
+      font-size: 28px;
+      text-align: center;
+      line-height: 1;
+      filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.3));
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Happy Birthday Lulu! 🎂</h1>
+    <p class="subtitle">Sydney Birthday Noms Finder</p>
+  </header>
+
+  <main class="greeting-stage">
+    <!-- Speech Bubble -->
+    <div class="speech-bubble" id="speechBubble">
+      <span id="speechText">Click the cat to wake me up!</span>
+    </div>
+
+    <!-- Animated Black & White Tuxedo Cat SVG -->
+    <div class="cat-wrapper" id="catHero" onclick="startCatTalking()">
+      <svg viewBox="0 0 200 200" width="100%" height="100%">
+        <!-- Tail -->
+        <path class="cat-tail" d="M 140 140 Q 180 120 170 80 Q 165 60 155 70 Q 160 100 135 125" fill="#2d3436" />
+        
+        <!-- Body (Black) -->
+        <ellipse cx="100" cy="135" rx="45" ry="40" fill="#2d3436" />
+        <!-- White Chest -->
+        <path d="M 85 110 Q 100 120 115 110 Q 120 150 100 170 Q 80 150 85 110 Z" fill="#ffffff" />
+
+        <!-- Paws (White) -->
+        <ellipse cx="80" cy="170" rx="12" ry="8" fill="#ffffff" />
+        <ellipse cx="120" cy="170" rx="12" ry="8" fill="#ffffff" />
+
+        <!-- Head (Black) -->
+        <circle cx="100" cy="80" r="35" fill="#2d3436" />
+
+        <!-- Left Ear -->
+        <g class="cat-ear-left">
+          <polygon points="70,55 80,25 95,50" fill="#2d3436" />
+          <polygon points="73,53 80,32 92,49" fill="#ff758f" />
+        </g>
+        <!-- Right Ear -->
+        <g>
+          <polygon points="130,55 120,25 105,50" fill="#2d3436" />
+          <polygon points="127,53 120,32 108,49" fill="#ff758f" />
+        </g>
+
+        <!-- Face Mask (White muzzle/blaze) -->
+        <path d="M 90 75 Q 100 65 110 75 Q 115 90 100 95 Q 85 90 90 75 Z" fill="#ffffff" />
+
+        <!-- Eyes (Green) -->
+        <ellipse cx="88" cy="72" rx="6" ry="8" fill="#2ed573" />
+        <ellipse cx="112" cy="72" rx="6" ry="8" fill="#2ed573" />
+        <!-- Pupils -->
+        <ellipse cx="88" cy="72" rx="2" ry="6" fill="#000000" />
+        <ellipse cx="112" cy="72" rx="2" ry="6" fill="#000000" />
+
+        <!-- Nose & Whiskers -->
+        <polygon points="97,82 103,82 100,86" fill="#ff758f" />
+        <!-- Mouth -->
+        <path d="M 96 88 Q 100 92 104 88" stroke="#2d3436" stroke-width="1.5" fill="none" />
+        
+        <!-- Whiskers Left -->
+        <line x1="85" y1="83" x2="65" y2="80" stroke="#ffffff" stroke-width="1.5" />
+        <line x1="85" y1="86" x2="65" y2="88" stroke="#ffffff" stroke-width="1.5" />
+        <!-- Whiskers Right -->
+        <line x1="115" y1="83" x2="135" y2="80" stroke="#ffffff" stroke-width="1.5" />
+        <line x1="115" y1="86" x2="135" y2="88" stroke="#ffffff" stroke-width="1.5" />
+      </svg>
+    </div>
+    <div class="tap-hint" id="tapHint">👆 Tap the Birthday Cat!</div>
+
+    <!-- Map Reveal Button -->
+    <button class="action-btn" id="mapTriggerBtn" style="display:none;" onclick="revealMap()">
+      🗺️ Show Sydney Birthday Map & Noms!
+    </button>
+  </main>
+
+  <!-- MAP SECTION -->
+  <section class="map-section" id="mapSection">
+    <div id="map"></div>
+  </section>
+
+  <!-- RESTAURANT SUMMARY MODAL -->
+  <div class="backdrop" id="backdrop" onclick="closeModal()"></div>
+  <div class="summary-card" id="summaryCard">
+    <button class="close-btn" onclick="closeModal()">&times;</button>
+    <h2 id="resTitle">Restaurant</h2>
+    <span class="tag" id="resTag">Subhead</span>
+    <p id="resDesc">Description goes here...</p>
+    <p><strong>Address:</strong> <span id="resAddr">Address</span></p>
+    <br>
+    <a id="resLink" href="#" target="_blank">Visit Website / Info ↗</a>
+  </div>
+
+  <!-- PERSISTENT TRANSLATE BAR -->
+  <div class="translate-bar" id="translateBar">
+    <button class="lang-btn active" id="transMainBtn" onclick="toggleTranslateMenu()">🌐 Translate</button>
+    <div class="translate-options" id="translateOptions">
+      <button class="lang-btn" onclick="setLanguage('english')">English</button>
+      <button class="lang-btn" onclick="setLanguage('meowish')">Meowish</button>
+      <button class="lang-btn" onclick="setLanguage('prawnese')">Prawnese 🦐</button>
+    </div>
+  </div>
+
+  <!-- Leaflet JS for Map -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    // --- DATA & STATE ---
+    const englishSentence = ["Happy", "Birthday", "Lulu!", "I", "am", "the", "birthday", "cat", "and", "I", "am", "here", "to", "show", "you", "the", "way", "to", "birthday", "noms"];
+    
+    let currentLang = 'meowish'; // Default initial language as required
+    let isTalking = false;
+    let wordIndex = 0;
+    let talkInterval = null;
+    let displayedWords = [];
+
+    // Restaurant Data
+    const restaurants = [
+      {
+        id: 1,
+        name: "PIQU",
+        tag: "Vibrant Thai-Inspired Dining",
+        coords: [-33.8966, 151.1798], // Newtown
+        address: "194 King St, Newtown",
+        desc: "An intimate 35-seat spot bringing bold, punchy Thai techniques and vibrant flavors like buttermilk roti and green mango salad.",
+        url: "https://www.google.com/search?q=PIQU+Newtown+Sydney"
+      },
+      {
+        id: 2,
+        name: "Sugo",
+        tag: "Generous Comfort Pasta Bar",
+        coords: [-33.9422, 151.1215], // Bexley North
+        address: "Shop 3, 8/20 Sarsfield Cct, Bexley North",
+        desc: "An effortlessly cool retro pasta bar serving handcrafted conchiglie, hearty cotoletta, and affordable Italian classics.",
+        url: "https://www.google.com/search?q=Sugo+Bexley+North+Sydney"
+      },
+      {
+        id: 3,
+        name: "Duan Noodle House",
+        tag: "Hand-Pulled Noodle Theater",
+        coords: [-33.9118, 151.1554], // Marrickville
+        address: "Shop 2/359 Illawarra Rd, Marrickville",
+        desc: "Watch fresh noodles hand-stretched before your eyes in rich, deeply comforting broths.",
+        url: "https://www.google.com/search?q=Duan+Noodle+House+Marrickville"
+      },
+      {
+        id: 4,
+        name: "PST Australia (Pizza Studio Tamaki)",
+        tag: "Cult Tokyo Neapolitan Pizza",
+        coords: [-33.8643, 151.2069], // Sydney CBD
+        address: "259 George St, Sydney CBD",
+        desc: "Direct from Tokyo, founder Tsubasa Tamaki serves exceptional woodfired pizza made with 30-hour fermented dough.",
+        url: "https://www.google.com/search?q=Pizza+Studio+Tamaki+Sydney"
+      },
+      {
+        id: 5,
+        name: "Lo Presti's Restaurant",
+        tag: "Italian & Moroccan Fusion",
+        coords: [-33.8932, 151.2052], // Redfern
+        address: "Level 1/34b Redfern St, Redfern",
+        desc: "Created by Baba's Place alumni, offering rich Mediterranean plates balancing Moroccan spices with Italian flair.",
+        url: "https://www.google.com/search?q=Lo+Prestis+Restaurant+Redfern"
+      }
+    ];
+
+    // Bronte Coordinates (Start location)
+    const BRONTE_COORDS = [-33.9032, 151.2685];
+
+    // Map & Marker variables
+    let map = null;
+    let catMarker = null;
+    let currentCatCoords = [...BRONTE_COORDS];
+
+    // --- LANGUAGE CONVERSION HELPER ---
+    function transformWord(word, lang) {
+      // Extract punctuation
+      const puncMatch = word.match(/[!?,.]/g);
+      const punc = puncMatch ? puncMatch.join('') : '';
+      const cleanWord = word.replace(/[!?,.]/g, '');
+
+      if (lang === 'english') {
+        return word;
+      } else if (lang === 'prawnese') {
+        return '🦐' + punc;
+      } else { // meowish
+        const isCapitalized = cleanWord[0] === cleanWord[0].toUpperCase();
+        return (isCapitalized ? 'Meow' : 'meow') + punc;
+      }
+    }
+
+    // --- CAT TALKING LOGIC ---
+    function startCatTalking() {
+      if (isTalking) return;
+      
+      // Reveal Translate bar forever on first click
+      document.getElementById('translateBar').style.display = 'flex';
+      document.getElementById('tapHint').style.display = 'none';
+
+      isTalking = true;
+      wordIndex = 0;
+      displayedWords = [];
+      document.getElementById('speechText').innerText = '';
+
+      talkInterval = setInterval(() => {
+        if (wordIndex < englishSentence.length) {
+          const rawWord = englishSentence[wordIndex];
+          displayedWords.push(rawWord);
+          renderSpeechBubble();
+          wordIndex++;
+        } else {
+          clearInterval(talkInterval);
+          isTalking = false;
+          // Show map button when cat finishes talking
+          document.getElementById('mapTriggerBtn').style.display = 'inline-block';
+        }
+      }, 250); // Word-by-word delay
+    }
+
+    function renderSpeechBubble() {
+      const renderedText = displayedWords
+        .map(w => transformWord(w, currentLang))
+        .join(' ');
+      document.getElementById('speechText').innerText = renderedText;
+    }
+
+    // --- TRANSLATION CONTROLS ---
+    function toggleTranslateMenu() {
+      const opts = document.getElementById('translateOptions');
+      opts.classList.toggle('show');
+    }
+
+    function setLanguage(lang) {
+      currentLang = lang;
+      
+      // Update UI buttons
+      document.querySelectorAll('.translate-options .lang-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      // Re-render currently spoken text
+      renderSpeechBubble();
+    }
+
+    // --- MAP & CAT ANIMATION LOGIC ---
+    function revealMap() {
+      const mapSec = document.getElementById('mapSection');
+      mapSec.style.display = 'flex';
+      mapSec.scrollIntoView({ behavior: 'smooth' });
+
+      if (!map) {
+        initMap();
+      }
+    }
+
+    function initMap() {
+      // Center map around Sydney
+      map = L.map('map').setView([-33.89, 151.20], 12);
+
+      // Add CartoDB Positron tile layer for clean aesthetic
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+      }).addTo(map);
+
+      // Custom Icon for Cat
+      const catIcon = L.divIcon({
+        className: 'cat-map-marker',
+        html: '🐱',
+        iconSize: [35, 35],
+        iconAnchor: [17, 17]
+      });
+
+      // Place Cat at Bronte initially
+      catMarker = L.marker(BRONTE_COORDS, { icon: catIcon }).addTo(map);
+      catMarker.bindTooltip("Lulu's Birthday Cat (Starting at Bronte)", { permanent: false, direction: 'top' });
+
+      // Add Restaurant Markers
+      restaurants.forEach(res => {
+        const marker = L.marker(res.coords).addTo(map);
+        marker.bindTooltip(`📍 ${res.name}`, { permanent: true, direction: 'bottom', offset: [0, 8] });
+        marker.on('click', () => onRestaurantClick(res));
+      });
+    }
+
+    // Smoothly animate cat marker from current location to destination
+    function animateCatTravel(targetCoords, callback) {
+      const startCoords = [...currentCatCoords];
+      const duration = 1200; // 1.2 seconds travel animation
+      const startTime = performance.now();
+
+      function step(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+
+        // Linear interpolation
+        const currentLat = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
+        const currentLng = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
+
+        catMarker.setLatLng([currentLat, currentLng]);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          currentCatCoords = [...targetCoords];
+          if (callback) callback();
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    function onRestaurantClick(res) {
+      // Animate cat to selected location
+      animateCatTravel(res.coords, () => {
+        showSummaryModal(res);
+      });
+    }
+
+    // --- MODAL CONTROLS ---
+    function showSummaryModal(res) {
+      document.getElementById('resTitle').innerText = res.name;
+      document.getElementById('resTag').innerText = res.tag;
+      document.getElementById('resDesc').innerText = res.desc;
+      document.getElementById('resAddr').innerText = res.address;
+      document.getElementById('resLink').href = res.url;
+
+      document.getElementById('backdrop').classList.add('active');
+      document.getElementById('summaryCard').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('backdrop').classList.remove('active');
+      document.getElementById('summaryCard').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
