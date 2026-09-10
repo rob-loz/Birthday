@@ -92,10 +92,10 @@
       transform: scale(0.95);
     }
 
-    /* --- EXACT-DIMENSION MAP CONTAINER --- */
+    /* --- FULLY RESPONSIVE FIT-TO-SCREEN MAP CONTAINER --- */
     .map-section {
       width: 92%;
-      max-width: 950px;
+      max-width: 800px;
       margin: 10px auto 30px auto;
       display: flex;
       flex-direction: column;
@@ -104,17 +104,24 @@
 
     .map-container {
       position: relative;
+      width: 100%;
+      max-width: 100%;
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       border: 4px solid white;
       background-color: #f7f1e3;
-      overflow: auto; /* Adds clean scrollbars if viewport is smaller than the map image */
-      max-width: 100%;
+      overflow: hidden; /* No scrolling allowed */
+      aspect-ratio: var(--map-aspect, 4 / 3); /* Automatically calculated to fit map dimensions perfectly */
     }
 
     #mapImage {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill; /* Scales the image precisely to fit container without cropping or scrolling */
       display: block;
-      /* Dimensions will be set programmatically in JS to match natural image size exactly */
     }
 
     .static-marker {
@@ -403,7 +410,7 @@
       updateAllDOMText();
     }
 
-    // Init Map using exact native image size matching your pixel coordinate system
+    // Init Map with Fit-to-Screen scaling matching original pixel coords perfectly
     function initStaticMap() {
       const img = document.getElementById('mapImage');
       
@@ -411,31 +418,28 @@
         const natWidth = img.naturalWidth;
         const natHeight = img.naturalHeight;
         
-        // Force container and image to use exact raw pixel sizes to prevent any distortion or zoom drift
+        // Lock container aspect ratio to match the image dimensions exactly so it fits the screen fully
         const container = document.getElementById('mapContainer');
-        container.style.width = natWidth + 'px';
-        container.style.height = natHeight + 'px';
-        img.style.width = natWidth + 'px';
-        img.style.height = natHeight + 'px';
+        container.style.setProperty('--map-aspect', `${natWidth} / ${natHeight}`);
 
         restaurants.forEach(res => {
           const marker = document.createElement('div');
           marker.className = 'static-marker';
-          // Pin directly using exact pixel offsets from your coordinate mapping
-          marker.style.left = res.pos.x + 'px';
-          marker.style.top = res.pos.y + 'px';
+          // Convert absolute pixel coords to exact CSS percentages based on native image size
+          marker.style.left = (res.pos.x / natWidth) * 100 + '%';
+          marker.style.top = (res.pos.y / natHeight) * 100 + '%';
           
           const icon = document.createElement('span'); icon.className = 'marker-icon'; icon.innerText = '📍';
           const label = document.createElement('span'); label.className = 'marker-label'; label.setAttribute('data-en', res.name);
           marker.appendChild(icon); marker.appendChild(label);
-          marker.onclick = () => onRestaurantClick(res);
+          marker.onclick = () => onRestaurantClick(res, natWidth, natHeight);
           container.appendChild(marker);
         });
 
         catMarkerEl = document.createElement('div');
         catMarkerEl.id = 'catMapMarker';
-        catMarkerEl.style.left = BRONTE_POS.x + 'px';
-        catMarkerEl.style.top = BRONTE_POS.y + 'px';
+        catMarkerEl.style.left = (BRONTE_POS.x / natWidth) * 100 + '%';
+        catMarkerEl.style.top = (BRONTE_POS.y / natHeight) * 100 + '%';
         catMarkerEl.innerHTML = miniCatSVG;
         const catLabel = document.createElement('span'); catLabel.className = 'marker-label'; catLabel.setAttribute('data-en', "Lulu's Birthday Cat");
         catMarkerEl.appendChild(catLabel);
@@ -449,7 +453,7 @@
       }
     }
 
-    function animateCatTravel(targetPos, callback) {
+    function animateCatTravel(targetPos, natW, natH, callback) {
       const startPos = { ...currentCatPos }; const duration = 1200; const startTime = performance.now();
       function step(currentTime) {
         const elapsed = currentTime - startTime;
@@ -459,16 +463,16 @@
         const curX = startPos.x + (targetPos.x - startPos.x) * easeProgress;
         const curY = startPos.y + (targetPos.y - startPos.y) * easeProgress;
 
-        catMarkerEl.style.left = curX + 'px';
-        catMarkerEl.style.top = curY + 'px';
+        catMarkerEl.style.left = (curX / natW) * 100 + '%';
+        catMarkerEl.style.top = (curY / natH) * 100 + '%';
 
         if (progress < 1) { requestAnimationFrame(step); } else { currentCatPos = { ...targetPos }; if (callback) callback(); }
       }
       requestAnimationFrame(step);
     }
 
-    function onRestaurantClick(res) { 
-      animateCatTravel(res.pos, () => { showSummaryModal(res); }); 
+    function onRestaurantClick(res, natW, natH) { 
+      animateCatTravel(res.pos, natW, natH, () => { showSummaryModal(res); }); 
     }
 
     function showSummaryModal(res) {
