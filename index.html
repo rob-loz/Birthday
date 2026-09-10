@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Happy Birthday Lulu! 🎂🐱</title>
+  <title>🐱🍕🎂</title>
   
-  <!-- Leaflet CSS for Map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   
   <style>
@@ -34,24 +33,6 @@
       padding-bottom: 90px;
     }
 
-    header {
-      text-align: center;
-      padding: 20px;
-      margin-top: 10px;
-    }
-
-    h1 {
-      font-size: 2rem;
-      color: var(--primary);
-      margin-bottom: 5px;
-    }
-
-    .subtitle {
-      font-size: 0.95rem;
-      color: #70a1ff;
-      font-weight: 600;
-    }
-
     /* --- CAT & SPEECH BUBBLE CONTAINER --- */
     .greeting-stage {
       display: flex;
@@ -61,6 +42,7 @@
       width: 100%;
       max-width: 500px;
       padding: 20px;
+      margin-top: 20px;
       position: relative;
     }
 
@@ -79,7 +61,8 @@
       font-weight: 600;
       text-align: center;
       border: 3px solid var(--primary);
-      transition: all 0.3s ease;
+      transition: opacity 0.4s ease;
+      opacity: 0; /* Hidden initially */
     }
 
     .speech-bubble::after {
@@ -95,13 +78,14 @@
       width: 0;
     }
 
-    /* SVG Cat Styling & Animation */
+    /* SVG Cat Styling */
     .cat-wrapper {
       cursor: pointer;
-      width: 180px;
-      height: 180px;
+      width: 200px;
+      height: 200px;
       position: relative;
       transition: transform 0.2s ease;
+      z-index: 10;
     }
 
     .cat-wrapper:hover {
@@ -112,78 +96,41 @@
       transform: scale(0.95);
     }
 
-    /* Tail Wagging */
-    @keyframes wagTail {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(18deg); }
-    }
-
-    /* Ear Wiggle */
-    @keyframes earMove {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(-5deg); }
-    }
-
-    .cat-tail {
-      transform-origin: bottom left;
-      animation: wagTail 2.5s infinite ease-in-out;
-    }
-
-    .cat-ear-left {
-      transform-origin: bottom right;
-      animation: earMove 3s infinite ease-in-out;
-    }
-
-    .tap-hint {
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: #888;
-      background: rgba(255,255,255,0.8);
-      padding: 4px 12px;
-      border-radius: 12px;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.6; }
-      50% { opacity: 1; }
-    }
-
     /* --- MAP SECTION --- */
     .map-section {
       width: 92%;
       max-width: 800px;
-      margin: 20px auto;
-      display: none; /* revealed via button */
+      margin: 10px auto 30px auto;
+      display: flex; /* Visible by default */
       flex-direction: column;
       align-items: center;
     }
 
-    .action-btn {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 14px 28px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      border-radius: 30px;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(255, 107, 129, 0.4);
-      transition: transform 0.2s, background 0.2s;
-      margin: 15px 0;
-    }
-
-    .action-btn:hover {
-      background-color: #ff4757;
-      transform: translateY(-2deg);
-    }
-
     #map {
       width: 100%;
-      height: 420px;
+      height: 450px;
       border-radius: 20px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       border: 4px solid white;
+    }
+    
+    /* Cartoony Map Filter */
+    .cartoony-tiles {
+      filter: saturate(180%) brightness(105%) hue-rotate(-5deg) contrast(1.15) !important;
+    }
+
+    /* Custom Cat Map Icon */
+    .cat-map-marker-svg {
+      width: 45px !important;
+      height: 45px !important;
+      filter: drop-shadow(0px 5px 4px rgba(0,0,0,0.3));
+      margin-left: -22px !important;
+      margin-top: -22px !important;
+      transition: transform 0.3s ease;
+    }
+    
+    .cat-map-marker-svg:hover {
+      transform: scale(1.15) translateY(-5px);
     }
 
     /* Restaurant Summary Modal/Card */
@@ -252,7 +199,6 @@
       color: #a4b0be;
     }
 
-    /* Overlay backdrop */
     .backdrop {
       position: fixed;
       top:0; left:0; right:0; bottom:0;
@@ -306,90 +252,77 @@
       color: white;
       border-color: var(--primary);
     }
-
-    /* Custom Cat Map Icon */
-    .cat-map-marker {
-      font-size: 28px;
-      text-align: center;
-      line-height: 1;
-      filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.3));
-    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>Happy Birthday Lulu! 🎂</h1>
-    <p class="subtitle">Sydney Birthday Noms Finder</p>
-  </header>
-
   <main class="greeting-stage">
     <!-- Speech Bubble -->
     <div class="speech-bubble" id="speechBubble">
-      <span id="speechText">Click the cat to wake me up!</span>
+      <span id="speechText"></span>
     </div>
 
-    <!-- Animated Black & White Tuxedo Cat SVG -->
+    <!-- Cuter Black & White Tuxedo Cat SVG -->
     <div class="cat-wrapper" id="catHero" onclick="startCatTalking()">
-      <svg viewBox="0 0 200 200" width="100%" height="100%">
+      <svg viewBox="0 0 200 200" width="100%" height="100%" overflow="visible">
+        <style>
+          .tail { transform-origin: 140px 140px; animation: wag 2.5s infinite ease-in-out; }
+          .ear { transform-origin: center; animation: twitch 4s infinite ease-in-out; }
+          @keyframes wag { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(18deg); } }
+          @keyframes twitch { 0%, 90%, 100% { transform: rotate(0deg); } 95% { transform: rotate(-5deg); } }
+        </style>
+        
         <!-- Tail -->
-        <path class="cat-tail" d="M 140 140 Q 180 120 170 80 Q 165 60 155 70 Q 160 100 135 125" fill="#2d3436" />
+        <path class="tail" d="M 130 140 Q 180 130 170 80 Q 160 60 150 75 Q 160 100 130 120" fill="#2d3436" />
         
-        <!-- Body (Black) -->
-        <ellipse cx="100" cy="135" rx="45" ry="40" fill="#2d3436" />
-        <!-- White Chest -->
-        <path d="M 85 110 Q 100 120 115 110 Q 120 150 100 170 Q 80 150 85 110 Z" fill="#ffffff" />
+        <!-- Chonky Body -->
+        <ellipse cx="100" cy="145" rx="60" ry="50" fill="#2d3436" />
+        <!-- White Belly -->
+        <ellipse cx="100" cy="155" rx="35" ry="30" fill="#ffffff" />
 
-        <!-- Paws (White) -->
-        <ellipse cx="80" cy="170" rx="12" ry="8" fill="#ffffff" />
-        <ellipse cx="120" cy="170" rx="12" ry="8" fill="#ffffff" />
-
-        <!-- Head (Black) -->
-        <circle cx="100" cy="80" r="35" fill="#2d3436" />
-
-        <!-- Left Ear -->
-        <g class="cat-ear-left">
-          <polygon points="70,55 80,25 95,50" fill="#2d3436" />
-          <polygon points="73,53 80,32 92,49" fill="#ff758f" />
-        </g>
-        <!-- Right Ear -->
-        <g>
-          <polygon points="130,55 120,25 105,50" fill="#2d3436" />
-          <polygon points="127,53 120,32 108,49" fill="#ff758f" />
-        </g>
-
-        <!-- Face Mask (White muzzle/blaze) -->
-        <path d="M 90 75 Q 100 65 110 75 Q 115 90 100 95 Q 85 90 90 75 Z" fill="#ffffff" />
-
-        <!-- Eyes (Green) -->
-        <ellipse cx="88" cy="72" rx="6" ry="8" fill="#2ed573" />
-        <ellipse cx="112" cy="72" rx="6" ry="8" fill="#2ed573" />
-        <!-- Pupils -->
-        <ellipse cx="88" cy="72" rx="2" ry="6" fill="#000000" />
-        <ellipse cx="112" cy="72" rx="2" ry="6" fill="#000000" />
-
-        <!-- Nose & Whiskers -->
-        <polygon points="97,82 103,82 100,86" fill="#ff758f" />
-        <!-- Mouth -->
-        <path d="M 96 88 Q 100 92 104 88" stroke="#2d3436" stroke-width="1.5" fill="none" />
+        <!-- Paws -->
+        <ellipse cx="70" cy="190" rx="15" ry="12" fill="#ffffff" />
+        <ellipse cx="130" cy="190" rx="15" ry="12" fill="#ffffff" />
         
-        <!-- Whiskers Left -->
-        <line x1="85" y1="83" x2="65" y2="80" stroke="#ffffff" stroke-width="1.5" />
-        <line x1="85" y1="86" x2="65" y2="88" stroke="#ffffff" stroke-width="1.5" />
-        <!-- Whiskers Right -->
-        <line x1="115" y1="83" x2="135" y2="80" stroke="#ffffff" stroke-width="1.5" />
-        <line x1="115" y1="86" x2="135" y2="88" stroke="#ffffff" stroke-width="1.5" />
+        <!-- Big Round Head -->
+        <ellipse cx="100" cy="85" rx="55" ry="45" fill="#2d3436" />
+
+        <!-- Rounder Ears -->
+        <g class="ear" style="transform-origin: 65px 40px;">
+          <path d="M 55 60 Q 45 10 75 40 Z" fill="#2d3436" />
+          <path d="M 60 55 Q 50 20 70 42 Z" fill="#ffb8b8" />
+        </g>
+        <g class="ear" style="transform-origin: 135px 40px; animation-delay: 2s;">
+          <path d="M 145 60 Q 155 10 125 40 Z" fill="#2d3436" />
+          <path d="M 140 55 Q 150 20 130 42 Z" fill="#ffb8b8" />
+        </g>
+
+        <!-- Cute White Face Mask -->
+        <path d="M 100 115 Q 140 115 145 85 Q 150 70 125 70 Q 100 90 100 90 Q 100 90 75 70 Q 50 70 55 85 Q 60 115 100 115 Z" fill="#ffffff" />
+
+        <!-- Pink Blush -->
+        <ellipse cx="65" cy="95" rx="8" ry="5" fill="#ffb8b8" opacity="0.8" />
+        <ellipse cx="135" cy="95" rx="8" ry="5" fill="#ffb8b8" opacity="0.8" />
+
+        <!-- Huge Anime Eyes -->
+        <ellipse cx="75" cy="75" rx="12" ry="16" fill="#000000" />
+        <ellipse cx="125" cy="75" rx="12" ry="16" fill="#000000" />
+        <!-- Eye Highlights -->
+        <ellipse cx="71" cy="69" rx="4" ry="6" fill="#ffffff" />
+        <circle cx="78" cy="82" r="2.5" fill="#ffffff" />
+        <ellipse cx="121" cy="69" rx="4" ry="6" fill="#ffffff" />
+        <circle cx="128" cy="82" r="2.5" fill="#ffffff" />
+
+        <!-- Tiny Nose -->
+        <path d="M 96 90 Q 100 93 104 90 Q 100 87 96 90 Z" fill="#ff758f" />
+        
+        <!-- :3 Mouth -->
+        <path d="M 96 93 Q 100 98 100 95 Q 100 98 104 93" stroke="#2d3436" stroke-width="2.5" stroke-linecap="round" fill="none" />
       </svg>
     </div>
-    <div class="tap-hint" id="tapHint">👆 Tap the Birthday Cat!</div>
-
-    <!-- Map Reveal Button -->
-    <button class="action-btn" id="mapTriggerBtn" style="display:none;" onclick="revealMap()">
-      🗺️ Show Sydney Birthday Map & Noms!
-    </button>
   </main>
 
-  <!-- MAP SECTION -->
+  <!-- MAP SECTION (Now visible by default) -->
   <section class="map-section" id="mapSection">
     <div id="map"></div>
   </section>
@@ -398,21 +331,21 @@
   <div class="backdrop" id="backdrop" onclick="closeModal()"></div>
   <div class="summary-card" id="summaryCard">
     <button class="close-btn" onclick="closeModal()">&times;</button>
-    <h2 id="resTitle">Restaurant</h2>
-    <span class="tag" id="resTag">Subhead</span>
-    <p id="resDesc">Description goes here...</p>
-    <p><strong>Address:</strong> <span id="resAddr">Address</span></p>
+    <h2 id="resTitle" data-en=""></h2>
+    <span class="tag" id="resTag" data-en=""></span>
+    <p id="resDesc" data-en=""></p>
+    <p id="resAddr" data-en=""></p>
     <br>
-    <a id="resLink" href="#" target="_blank">Visit Website / Info ↗</a>
+    <a id="resLink" data-en="Visit Website / Info ↗" href="#" target="_blank">Visit Website / Info ↗</a>
   </div>
 
   <!-- PERSISTENT TRANSLATE BAR -->
   <div class="translate-bar" id="translateBar">
-    <button class="lang-btn active" id="transMainBtn" onclick="toggleTranslateMenu()">🌐 Translate</button>
+    <button class="lang-btn active" id="transMainBtn" data-en="Translate 🌐" onclick="toggleTranslateMenu()">Translate 🌐</button>
     <div class="translate-options" id="translateOptions">
-      <button class="lang-btn" onclick="setLanguage('english')">English</button>
-      <button class="lang-btn" onclick="setLanguage('meowish')">Meowish</button>
-      <button class="lang-btn" onclick="setLanguage('prawnese')">Prawnese 🦐</button>
+      <button class="lang-btn" data-en="English 🇬🇧" onclick="setLanguage('english')">English 🇬🇧</button>
+      <button class="lang-btn active" data-en="Meowish 🐱" onclick="setLanguage('meowish')">Meowish 🐱</button>
+      <button class="lang-btn" data-en="Prawnese 🦐" onclick="setLanguage('prawnese')">Prawnese 🦐</button>
     </div>
   </div>
 
@@ -421,13 +354,14 @@
 
   <script>
     // --- DATA & STATE ---
-    const englishSentence = ["Happy", "Birthday", "Lulu!", "I", "am", "the", "birthday", "cat", "and", "I", "am", "here", "to", "show", "you", "the", "way", "to", "birthday", "noms"];
+    const baseSentence = "Happy Birthday Lulu! I am the birthday cat and I am here to show you the way to birthday noms".split(" ");
     
-    let currentLang = 'meowish'; // Default initial language as required
+    let currentLang = 'meowish'; // Default initial language as requested
     let isTalking = false;
     let wordIndex = 0;
     let talkInterval = null;
     let displayedWords = [];
+    let activeRestaurant = null;
 
     // Restaurant Data
     const restaurants = [
@@ -435,7 +369,7 @@
         id: 1,
         name: "PIQU",
         tag: "Vibrant Thai-Inspired Dining",
-        coords: [-33.8966, 151.1798], // Newtown
+        coords: [-33.8966, 151.1798], 
         address: "194 King St, Newtown",
         desc: "An intimate 35-seat spot bringing bold, punchy Thai techniques and vibrant flavors like buttermilk roti and green mango salad.",
         url: "https://www.google.com/search?q=PIQU+Newtown+Sydney"
@@ -444,7 +378,7 @@
         id: 2,
         name: "Sugo",
         tag: "Generous Comfort Pasta Bar",
-        coords: [-33.9422, 151.1215], // Bexley North
+        coords: [-33.9422, 151.1215], 
         address: "Shop 3, 8/20 Sarsfield Cct, Bexley North",
         desc: "An effortlessly cool retro pasta bar serving handcrafted conchiglie, hearty cotoletta, and affordable Italian classics.",
         url: "https://www.google.com/search?q=Sugo+Bexley+North+Sydney"
@@ -453,7 +387,7 @@
         id: 3,
         name: "Duan Noodle House",
         tag: "Hand-Pulled Noodle Theater",
-        coords: [-33.9118, 151.1554], // Marrickville
+        coords: [-33.9118, 151.1554], 
         address: "Shop 2/359 Illawarra Rd, Marrickville",
         desc: "Watch fresh noodles hand-stretched before your eyes in rich, deeply comforting broths.",
         url: "https://www.google.com/search?q=Duan+Noodle+House+Marrickville"
@@ -462,7 +396,7 @@
         id: 4,
         name: "PST Australia (Pizza Studio Tamaki)",
         tag: "Cult Tokyo Neapolitan Pizza",
-        coords: [-33.8643, 151.2069], // Sydney CBD
+        coords: [-33.8643, 151.2069], 
         address: "259 George St, Sydney CBD",
         desc: "Direct from Tokyo, founder Tsubasa Tamaki serves exceptional woodfired pizza made with 30-hour fermented dough.",
         url: "https://www.google.com/search?q=Pizza+Studio+Tamaki+Sydney"
@@ -471,35 +405,97 @@
         id: 5,
         name: "Lo Presti's Restaurant",
         tag: "Italian & Moroccan Fusion",
-        coords: [-33.8932, 151.2052], // Redfern
+        coords: [-33.8932, 151.2052], 
         address: "Level 1/34b Redfern St, Redfern",
         desc: "Created by Baba's Place alumni, offering rich Mediterranean plates balancing Moroccan spices with Italian flair.",
         url: "https://www.google.com/search?q=Lo+Prestis+Restaurant+Redfern"
       }
     ];
 
-    // Bronte Coordinates (Start location)
     const BRONTE_COORDS = [-33.9032, 151.2685];
 
-    // Map & Marker variables
     let map = null;
     let catMarker = null;
     let currentCatCoords = [...BRONTE_COORDS];
+    let restaurantMarkers = [];
 
-    // --- LANGUAGE CONVERSION HELPER ---
-    function transformWord(word, lang) {
-      // Extract punctuation
-      const puncMatch = word.match(/[!?,.]/g);
-      const punc = puncMatch ? puncMatch.join('') : '';
-      const cleanWord = word.replace(/[!?,.]/g, '');
+    // Miniature version of the cute SVG for the map marker
+    const miniCatSVG = `
+      <svg viewBox="0 0 200 200" width="100%" height="100%" overflow="visible">
+        <ellipse cx="100" cy="145" rx="60" ry="50" fill="#2d3436" />
+        <ellipse cx="100" cy="155" rx="35" ry="30" fill="#ffffff" />
+        <ellipse cx="100" cy="85" rx="55" ry="45" fill="#2d3436" />
+        <path d="M 55 60 Q 45 10 75 40 Z" fill="#2d3436" />
+        <path d="M 60 55 Q 50 20 70 42 Z" fill="#ffb8b8" />
+        <path d="M 145 60 Q 155 10 125 40 Z" fill="#2d3436" />
+        <path d="M 140 55 Q 150 20 130 42 Z" fill="#ffb8b8" />
+        <path d="M 100 115 Q 140 115 145 85 Q 150 70 125 70 Q 100 90 100 90 Q 100 90 75 70 Q 50 70 55 85 Q 60 115 100 115 Z" fill="#ffffff" />
+        <ellipse cx="65" cy="95" rx="8" ry="5" fill="#ffb8b8" opacity="0.8" />
+        <ellipse cx="135" cy="95" rx="8" ry="5" fill="#ffb8b8" opacity="0.8" />
+        <ellipse cx="75" cy="75" rx="12" ry="16" fill="#000000" />
+        <ellipse cx="125" cy="75" rx="12" ry="16" fill="#000000" />
+        <ellipse cx="71" cy="69" rx="4" ry="6" fill="#ffffff" />
+        <ellipse cx="121" cy="69" rx="4" ry="6" fill="#ffffff" />
+        <path d="M 96 90 Q 100 93 104 90 Q 100 87 96 90 Z" fill="#ff758f" />
+      </svg>
+    `;
 
-      if (lang === 'english') {
-        return word;
-      } else if (lang === 'prawnese') {
-        return '🦐' + punc;
-      } else { // meowish
-        const isCapitalized = cleanWord[0] === cleanWord[0].toUpperCase();
-        return (isCapitalized ? 'Meow' : 'meow') + punc;
+    // --- UNIVERSAL TRANSLATION ENGINE ---
+    function translateText(str, lang) {
+      if (lang === 'english') return str;
+      
+      return str.split(/(\s+)/).map(word => {
+        if (!word.trim()) return word; // Preserve whitespace
+        
+        // Extract leading/trailing punctuation and emojis
+        const match = word.match(/^([^a-zA-Z0-9]*)(.*?)([^a-zA-Z0-9]*)$/);
+        if (!match) return word;
+        
+        let [ , prefix, core, suffix ] = match;
+        
+        if (!core) return word; // Only punctuation/emojis
+        
+        if (lang === 'prawnese') {
+          return prefix + '🦐' + suffix;
+        } else {
+          // Meowish
+          let isCapitalized = /^[A-Z]/.test(core);
+          return prefix + (isCapitalized ? 'Meow' : 'meow') + suffix;
+        }
+      }).join('');
+    }
+
+    function updateAllDOMText() {
+      // Update elements with data-en attribute
+      document.querySelectorAll('[data-en]').forEach(el => {
+        const originalText = el.getAttribute('data-en');
+        if (originalText) {
+          if(el.tagName === 'P' && originalText.startsWith('Address:')) {
+             // Handle address bolding specifically
+             const addrCore = originalText.replace('Address: ', '');
+             el.innerHTML = `<strong>${translateText('Address:', currentLang)}</strong> ${translateText(addrCore, currentLang)}`;
+          } else {
+             el.innerText = translateText(originalText, currentLang);
+          }
+        }
+      });
+
+      // Update Map Tooltips
+      if (restaurantMarkers.length > 0) {
+        restaurantMarkers.forEach(item => {
+          item.marker.unbindTooltip();
+          item.marker.bindTooltip(`📍 ` + translateText(item.res.name, currentLang), { permanent: true, direction: 'bottom', offset: [0, 8] });
+        });
+      }
+
+      if (catMarker) {
+        catMarker.unbindTooltip();
+        catMarker.bindTooltip(translateText("Lulu's Birthday Cat (Starting at Bronte)", currentLang), { permanent: false, direction: 'top' });
+      }
+
+      // Re-render currently spoken text
+      if (displayedWords.length > 0) {
+        renderSpeechBubble();
       }
     }
 
@@ -507,110 +503,98 @@
     function startCatTalking() {
       if (isTalking) return;
       
-      // Reveal Translate bar forever on first click
+      const bubble = document.getElementById('speechBubble');
+      bubble.style.opacity = '1';
       document.getElementById('translateBar').style.display = 'flex';
-      document.getElementById('tapHint').style.display = 'none';
 
       isTalking = true;
       wordIndex = 0;
       displayedWords = [];
       document.getElementById('speechText').innerText = '';
 
+      // Set default lang UI on first run
+      updateAllDOMText();
+
       talkInterval = setInterval(() => {
-        if (wordIndex < englishSentence.length) {
-          const rawWord = englishSentence[wordIndex];
-          displayedWords.push(rawWord);
+        if (wordIndex < baseSentence.length) {
+          displayedWords.push(baseSentence[wordIndex]);
           renderSpeechBubble();
           wordIndex++;
         } else {
           clearInterval(talkInterval);
           isTalking = false;
-          // Show map button when cat finishes talking
-          document.getElementById('mapTriggerBtn').style.display = 'inline-block';
         }
-      }, 250); // Word-by-word delay
+      }, 350);
     }
 
     function renderSpeechBubble() {
-      const renderedText = displayedWords
-        .map(w => transformWord(w, currentLang))
-        .join(' ');
+      const renderedText = displayedWords.map(w => translateText(w, currentLang)).join(' ');
       document.getElementById('speechText').innerText = renderedText;
     }
 
     // --- TRANSLATION CONTROLS ---
     function toggleTranslateMenu() {
-      const opts = document.getElementById('translateOptions');
-      opts.classList.toggle('show');
+      document.getElementById('translateOptions').classList.toggle('show');
     }
 
     function setLanguage(lang) {
       currentLang = lang;
       
-      // Update UI buttons
       document.querySelectorAll('.translate-options .lang-btn').forEach(btn => {
         btn.classList.remove('active');
+        if (btn.getAttribute('data-en').toLowerCase().includes(lang)) {
+          btn.classList.add('active');
+        }
       });
-      event.target.classList.add('active');
 
-      // Re-render currently spoken text
-      renderSpeechBubble();
+      updateAllDOMText();
     }
 
     // --- MAP & CAT ANIMATION LOGIC ---
-    function revealMap() {
-      const mapSec = document.getElementById('mapSection');
-      mapSec.style.display = 'flex';
-      mapSec.scrollIntoView({ behavior: 'smooth' });
-
-      if (!map) {
-        initMap();
-      }
-    }
-
     function initMap() {
-      // Center map around Sydney
       map = L.map('map').setView([-33.89, 151.20], 12);
 
-      // Add CartoDB Positron tile layer for clean aesthetic
+      // CartoDB Voyager with CSS filter for cartoony look
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
+        className: 'cartoony-tiles',
         attribution: '© OpenStreetMap'
       }).addTo(map);
 
-      // Custom Icon for Cat
+      // Custom SVG Cat Icon
       const catIcon = L.divIcon({
-        className: 'cat-map-marker',
-        html: '🐱',
-        iconSize: [35, 35],
-        iconAnchor: [17, 17]
+        className: 'cat-map-marker-svg',
+        html: miniCatSVG,
+        iconSize: [45, 45],
+        iconAnchor: [22, 22]
       });
 
-      // Place Cat at Bronte initially
-      catMarker = L.marker(BRONTE_COORDS, { icon: catIcon }).addTo(map);
-      catMarker.bindTooltip("Lulu's Birthday Cat (Starting at Bronte)", { permanent: false, direction: 'top' });
-
-      // Add Restaurant Markers
+      catMarker = L.marker(BRONTE_COORDS, { icon: catIcon, zIndexOffset: 1000 }).addTo(map);
+      
       restaurants.forEach(res => {
         const marker = L.marker(res.coords).addTo(map);
-        marker.bindTooltip(`📍 ${res.name}`, { permanent: true, direction: 'bottom', offset: [0, 8] });
+        restaurantMarkers.push({ marker: marker, res: res });
         marker.on('click', () => onRestaurantClick(res));
       });
+      
+      // Initialize tooltips with current language
+      updateAllDOMText();
     }
 
-    // Smoothly animate cat marker from current location to destination
     function animateCatTravel(targetCoords, callback) {
       const startCoords = [...currentCatCoords];
-      const duration = 1200; // 1.2 seconds travel animation
+      const duration = 1500; 
       const startTime = performance.now();
 
       function step(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function for smoother travel
+        const easeProgress = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
 
-        // Linear interpolation
-        const currentLat = startCoords[0] + (targetCoords[0] - startCoords[0]) * progress;
-        const currentLng = startCoords[1] + (targetCoords[1] - startCoords[1]) * progress;
+        const currentLat = startCoords[0] + (targetCoords[0] - startCoords[0]) * easeProgress;
+        const currentLng = startCoords[1] + (targetCoords[1] - startCoords[1]) * easeProgress;
 
         catMarker.setLatLng([currentLat, currentLng]);
 
@@ -626,7 +610,6 @@
     }
 
     function onRestaurantClick(res) {
-      // Animate cat to selected location
       animateCatTravel(res.coords, () => {
         showSummaryModal(res);
       });
@@ -634,11 +617,16 @@
 
     // --- MODAL CONTROLS ---
     function showSummaryModal(res) {
-      document.getElementById('resTitle').innerText = res.name;
-      document.getElementById('resTag').innerText = res.tag;
-      document.getElementById('resDesc').innerText = res.desc;
-      document.getElementById('resAddr').innerText = res.address;
+      activeRestaurant = res;
+      
+      // Update data-en attributes for universal translation
+      document.getElementById('resTitle').setAttribute('data-en', res.name);
+      document.getElementById('resTag').setAttribute('data-en', res.tag);
+      document.getElementById('resDesc').setAttribute('data-en', res.desc);
+      document.getElementById('resAddr').setAttribute('data-en', "Address: " + res.address);
       document.getElementById('resLink').href = res.url;
+      
+      updateAllDOMText(); // Triggers translation of newly injected texts
 
       document.getElementById('backdrop').classList.add('active');
       document.getElementById('summaryCard').classList.add('active');
@@ -647,7 +635,11 @@
     function closeModal() {
       document.getElementById('backdrop').classList.remove('active');
       document.getElementById('summaryCard').classList.remove('active');
+      activeRestaurant = null;
     }
+
+    // Initialize Map on Load
+    window.onload = initMap;
   </script>
 </body>
 </html>
