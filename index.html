@@ -92,10 +92,10 @@
       transform: scale(0.95);
     }
 
-    /* --- FULL SIZE MAP CONTAINER --- */
+    /* --- EXACT-DIMENSION MAP CONTAINER --- */
     .map-section {
       width: 92%;
-      max-width: 900px;
+      max-width: 950px;
       margin: 10px auto 30px auto;
       display: flex;
       flex-direction: column;
@@ -108,15 +108,13 @@
       box-shadow: 0 10px 30px rgba(0,0,0,0.12);
       border: 4px solid white;
       background-color: #f7f1e3;
-      overflow: auto; /* Allows scrolling if screen is smaller than the full image */
+      overflow: auto; /* Adds clean scrollbars if viewport is smaller than the map image */
       max-width: 100%;
     }
 
     #mapImage {
       display: block;
-      width: auto;
-      height: auto;
-      max-width: none; /* Prevents CSS scaling/stretching */
+      /* Dimensions will be set programmatically in JS to match natural image size exactly */
     }
 
     .static-marker {
@@ -261,7 +259,7 @@
   <section class="map-section">
     <div class="map-container" id="mapContainer">
       <img id="mapImage" src="https://github.com/rob-loz/Birthday/blob/main/Sydney%20Map.jpg?raw=true" alt="Sydney Map">
-      <!-- Markers and Cat injected by JS -->
+      <!-- Markers and Cat injected dynamically -->
     </div>
   </section>
 
@@ -296,7 +294,7 @@
     let talkInterval = null;
     let displayedWords = [];
 
-    // Exact pixel coordinates provided
+    // Exact pixel coordinates you specified
     const restaurants = [
       { id: 1, name: "PIQU", tag: "Vibrant Thai-Inspired Dining", address: "194 King St, Newtown", desc: "An intimate 35-seat spot bringing bold, punchy Thai techniques and vibrant flavors like buttermilk roti and green mango salad.", url: "https://www.google.com/search?q=PIQU+Newtown+Sydney",
         pos: { x: 351, y: 411 } 
@@ -405,32 +403,39 @@
       updateAllDOMText();
     }
 
-    // Init Map with Pixel-Exact Positioning based on Full Size Image
+    // Init Map using exact native image size matching your pixel coordinate system
     function initStaticMap() {
       const img = document.getElementById('mapImage');
       
       img.onload = function() {
         const natWidth = img.naturalWidth;
         const natHeight = img.naturalHeight;
+        
+        // Force container and image to use exact raw pixel sizes to prevent any distortion or zoom drift
         const container = document.getElementById('mapContainer');
+        container.style.width = natWidth + 'px';
+        container.style.height = natHeight + 'px';
+        img.style.width = natWidth + 'px';
+        img.style.height = natHeight + 'px';
 
         restaurants.forEach(res => {
           const marker = document.createElement('div');
           marker.className = 'static-marker';
-          marker.style.left = (res.pos.x / natWidth) * 100 + '%';
-          marker.style.top = (res.pos.y / natHeight) * 100 + '%';
+          // Pin directly using exact pixel offsets from your coordinate mapping
+          marker.style.left = res.pos.x + 'px';
+          marker.style.top = res.pos.y + 'px';
           
           const icon = document.createElement('span'); icon.className = 'marker-icon'; icon.innerText = '📍';
           const label = document.createElement('span'); label.className = 'marker-label'; label.setAttribute('data-en', res.name);
           marker.appendChild(icon); marker.appendChild(label);
-          marker.onclick = () => onRestaurantClick(res, natWidth, natHeight);
+          marker.onclick = () => onRestaurantClick(res);
           container.appendChild(marker);
         });
 
         catMarkerEl = document.createElement('div');
         catMarkerEl.id = 'catMapMarker';
-        catMarkerEl.style.left = (BRONTE_POS.x / natWidth) * 100 + '%';
-        catMarkerEl.style.top = (BRONTE_POS.y / natHeight) * 100 + '%';
+        catMarkerEl.style.left = BRONTE_POS.x + 'px';
+        catMarkerEl.style.top = BRONTE_POS.y + 'px';
         catMarkerEl.innerHTML = miniCatSVG;
         const catLabel = document.createElement('span'); catLabel.className = 'marker-label'; catLabel.setAttribute('data-en', "Lulu's Birthday Cat");
         catMarkerEl.appendChild(catLabel);
@@ -444,7 +449,7 @@
       }
     }
 
-    function animateCatTravel(targetPos, natW, natH, callback) {
+    function animateCatTravel(targetPos, callback) {
       const startPos = { ...currentCatPos }; const duration = 1200; const startTime = performance.now();
       function step(currentTime) {
         const elapsed = currentTime - startTime;
@@ -454,16 +459,16 @@
         const curX = startPos.x + (targetPos.x - startPos.x) * easeProgress;
         const curY = startPos.y + (targetPos.y - startPos.y) * easeProgress;
 
-        catMarkerEl.style.left = (curX / natW) * 100 + '%';
-        catMarkerEl.style.top = (curY / natH) * 100 + '%';
+        catMarkerEl.style.left = curX + 'px';
+        catMarkerEl.style.top = curY + 'px';
 
         if (progress < 1) { requestAnimationFrame(step); } else { currentCatPos = { ...targetPos }; if (callback) callback(); }
       }
       requestAnimationFrame(step);
     }
 
-    function onRestaurantClick(res, natW, natH) { 
-      animateCatTravel(res.pos, natW, natH, () => { showSummaryModal(res); }); 
+    function onRestaurantClick(res) { 
+      animateCatTravel(res.pos, () => { showSummaryModal(res); }); 
     }
 
     function showSummaryModal(res) {
