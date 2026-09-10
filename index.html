@@ -306,16 +306,13 @@
       { id: 1, name: "PIQU", tag: "Vibrant Thai-Inspired Dining", address: "194 King St, Newtown", desc: "An intimate 35-seat spot bringing bold, punchy Thai techniques and vibrant flavors like buttermilk roti and green mango salad.", url: "https://www.google.com/search?q=PIQU+Newtown+Sydney",
         pos: { x: 351, y: 411 } 
       },
-      { id: 2, name: "Sugo", tag: "Generous Comfort Pasta Bar", address: "Shop 3, 8/20 Sarsfield Cct, Bexley North", desc: "An effortlessly cool retro pasta bar serving handcrafted conchiglie, hearty cotoletta, and affordable Italian classics.", url: "https://www.google.com/search?q=Sugo+Bexley+North+Sydney",
-        pos: { x: 17, y: 788 } 
-      },
-      { id: 3, name: "Duan Noodle House", tag: "Hand-Pulled Noodle Theater", address: "Shop 2/359 Illawarra Rd, Marrickville", desc: "Watch fresh noodles hand-stretched before your eyes in rich, deeply comforting broths.", url: "https://www.google.com/search?q=Duan+Noodle+House+Marrickville",
+      { id: 2, name: "Duan Noodle House", tag: "Hand-Pulled Noodle Theater", address: "Shop 2/359 Illawarra Rd, Marrickville", desc: "Watch fresh noodles hand-stretched before your eyes in rich, deeply comforting broths.", url: "https://www.google.com/search?q=Duan+Noodle+House+Marrickville",
         pos: { x: 110, y: 684 } 
       },
-      { id: 4, name: "PST Australia", tag: "Cult Tokyo Neapolitan Pizza", address: "259 George St, Sydney CBD", desc: "Direct from Tokyo, founder Tsubasa Tamaki serves exceptional woodfired pizza made with 30-hour fermented dough.", url: "https://www.google.com/search?q=Pizza+Studio+Tamaki+Sydney",
+      { id: 3, name: "PST Australia", tag: "Cult Tokyo Neapolitan Pizza", address: "259 George St, Sydney CBD", desc: "Direct from Tokyo, founder Tsubasa Tamaki serves exceptional woodfired pizza made with 30-hour fermented dough.", url: "https://www.google.com/search?q=Pizza+Studio+Tamaki+Sydney",
         pos: { x: 533, y: 134 } 
       },
-      { id: 5, name: "Lo Presti's Restaurant", tag: "Italian & Moroccan Fusion", address: "Level 1/34b Redfern St, Redfern", desc: "Created by Baba's Place alumni, offering rich Mediterranean plates balancing Moroccan spices with Italian flair.", url: "https://www.google.com/search?q=Lo+Prestis+Restaurant+Redfern",
+      { id: 4, name: "Lo Presti's Restaurant", tag: "Italian & Moroccan Fusion", address: "Level 1/34b Redfern St, Redfern", desc: "Created by Baba's Place alumni, offering rich Mediterranean plates balancing Moroccan spices with Italian flair.", url: "https://www.google.com/search?q=Lo+Prestis+Restaurant+Redfern",
         pos: { x: 566, y: 429 } 
       }
     ];
@@ -441,7 +438,7 @@
         catMarkerEl.style.left = (BRONTE_POS.x / natWidth) * 100 + '%';
         catMarkerEl.style.top = (BRONTE_POS.y / natHeight) * 100 + '%';
         catMarkerEl.innerHTML = miniCatSVG;
-        const catLabel = document.createElement('span'); catLabel.className = 'marker-label'; catLabel.setAttribute('data-en', "Lulu's Birthday Cat");
+        const catLabel = document.createElement('span'); catLabel.className = 'marker-label'; catLabel.setAttribute('data-en', "");
         catMarkerEl.appendChild(catLabel);
         container.appendChild(catMarkerEl);
 
